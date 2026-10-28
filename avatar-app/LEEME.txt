@@ -1,4 +1,4 @@
-AXX BELMONT · AVATAR STUDIO 0.14
+AXX BELMONT · AVATAR STUDIO 0.14.1
 ESTUDIO DE VIDEO, MODO JUICIO Y AUDIO A TEXTO
 
 INSTALACIÓN Y ACTUALIZACIONES
@@ -23,6 +23,10 @@ En el editor, abre Audio > Audio a texto. Puedes grabar con tu micrófono,
 importar una grabación o usar el audio del clip seleccionado. Detén la grabación
 con el botón Detener; el máximo es de 120 segundos por grabación. Guardar WAV
 permite conservar una copia independiente de lo que grabaste o recortaste.
+
+La preparación del modelo muestra conexión, porcentaje descargado y verificación
+junto a sus botones. Un indicador verde confirma que está instalado. Si ya existe,
+no necesitas descargarlo de nuevo. Elegir archivo .bin usa un archivo que ya tengas.
 
 La primera vez descarga el modelo multilingüe base (148 MB), o selecciona un
 archivo ggml-base.bin que ya tengas. Se verifica su integridad. El modelo se

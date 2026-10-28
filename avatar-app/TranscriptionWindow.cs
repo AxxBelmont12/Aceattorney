@@ -10,10 +10,11 @@ namespace AvatarStudio;
 public sealed record TranscriptionChoice(RecordedVoice Voice,TranscriptDocument Document,bool Fragments,bool Replace);
 public sealed class TranscriptionWindow:Window
 {
-    enum Operation{None,Record,Import,Download,Recognize}
+    enum Operation{None,CheckModel,Record,Import,Download,Recognize}
     Operation operation;
     CancellationTokenSource? stop;
     bool closeRequested,modelReady;
+    long modelTransferSerial;
     RecordedVoice? audio;
     readonly RecordedVoice? current;
     readonly List<Button> controls=new();
@@ -25,6 +26,9 @@ public sealed class TranscriptionWindow:Window
     readonly RadioButton onlyText=new(){Content="Transcribir como un diálogo",GroupName="Result",Foreground=Brushes.White},fragments=new(){Content="Crear fragmentos sincronizados",GroupName="Result",Foreground=Brushes.White};
     readonly ComboBox destination=new(){ItemsSource=new[]{"Añadir al montaje","Reemplazar el clip seleccionado"},SelectedIndex=0,Foreground=MainWindow.Navy,MinWidth=250};
     readonly Button record=new(),transcribe=new(),apply=new(),cancel=new(){Content="Cancelar operación",Visibility=Visibility.Collapsed};
+    readonly Button downloadModel=new(),chooseModel=new(),cancelModel=new(){Content="Cancelar",Visibility=Visibility.Collapsed};
+    readonly ProgressBar modelProgress=new(){Minimum=0,Maximum=100,Height=9,Margin=new Thickness(0,8,0,6),Foreground=Brushes.Gold,Visibility=Visibility.Collapsed};
+    readonly TextBlock modelHint=new(){Text="Descarga única de 148 MB. Tus audios se procesan en este equipo.",TextWrapping=TextWrapping.Wrap,FontSize=12,Foreground=Brushes.LightSteelBlue};
     public TranscriptionChoice? Result{get;private set;}
     double duration;
     public TranscriptionWindow(RecordedVoice? current,bool createFragments,bool canReplace,string vocabulary)
@@ -37,10 +41,12 @@ public sealed class TranscriptionWindow:Window
         audioButtons.Children.Add(Action("Importar audio…",()=>Run(Operation.Import,async token=>{var file=new OpenFileDialog{Filter="Grabaciones|*.wav;*.mp3;*.m4a;*.ogg;*.flac;*.opus;*.aac;*.wma|Todos|*.*"};if(file.ShowDialog(this)!=true)return;SetAudio(await RecordedVoice.ImportAsync(file.FileName,token));})));
         if(current!=null)audioButtons.Children.Add(Action("Usar audio del clip",()=>{SetAudio(current);return Task.CompletedTask;}));
         audioButtons.Children.Add(Action("Guardar WAV…",()=>Run(Operation.Import,async token=>{if(audio==null){status.Text="Graba o importa primero un audio.";return;}var save=new SaveFileDialog{Filter="Audio WAV|*.wav",FileName="mi-grabacion.wav"};if(save.ShowDialog(this)!=true)return;await Task.Run(()=>VoiceFile.SaveWav(audio,save.FileName,token),token);status.Text="Grabación guardada: "+save.FileName;})));
+        status.Margin=new Thickness(0,3,0,0);status.FontSize=13;top.Children.Add(status);
         var settings=new Grid{Margin=new Thickness(0,10,0,5)};settings.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});settings.ColumnDefinitions.Add(new(){Width=new GridLength(18)});settings.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});Grid.SetRow(settings,1);root.Children.Add(settings);
-        var left=new StackPanel();settings.Children.Add(left);left.Children.Add(model);var modelButtons=new WrapPanel();left.Children.Add(modelButtons);
-        modelButtons.Children.Add(Action("Descargar modelo local · 148 MB",()=>Run(Operation.Download,async token=>{await LocalTranscription.DownloadModel(new Progress<string>(s=>status.Text=s),token);modelReady=await LocalTranscription.ModelReady(token);UpdateModel();})));
-        modelButtons.Children.Add(Action("Usar modelo descargado…",()=>Run(Operation.Download,async token=>{var file=new OpenFileDialog{Filter="Modelo multilingüe base|ggml-base.bin"};if(file.ShowDialog(this)!=true)return;await LocalTranscription.InstallModel(file.FileName,token);modelReady=true;UpdateModel();})));
+        var left=new StackPanel();settings.Children.Add(left);model.FontWeight=FontWeights.SemiBold;left.Children.Add(model);left.Children.Add(modelProgress);left.Children.Add(modelHint);var modelButtons=new WrapPanel();left.Children.Add(modelButtons);
+        StyleButton(downloadModel);downloadModel.Content="Descargar modelo · 148 MB";downloadModel.Click+=async(_,_)=>await Run(Operation.Download,token=>PrepareModel(null,token));modelButtons.Children.Add(downloadModel);
+        StyleButton(chooseModel);chooseModel.Content="Elegir archivo .bin…";chooseModel.ToolTip="Usa un ggml-base.bin que ya hayas descargado. No inicia una descarga.";chooseModel.Click+=async(_,_)=>{var file=new OpenFileDialog{Filter="Modelo multilingüe base|ggml-base.bin"};if(file.ShowDialog(this)==true)await Run(Operation.Download,token=>PrepareModel(file.FileName,token));};modelButtons.Children.Add(chooseModel);
+        StyleButton(cancelModel);cancelModel.Click+=(_,_)=>stop?.Cancel();modelButtons.Children.Add(cancelModel);
         var right=new StackPanel();Grid.SetColumn(right,2);settings.Children.Add(right);right.Children.Add(Label("Idioma",12));right.Children.Add(language);right.Children.Add(Label("Nombres o vocabulario opcional",12));names.Text=vocabulary;right.Children.Add(names);
         StyleButton(transcribe);transcribe.Content="TRANSCRIBIR AUDIO";transcribe.Background=Brushes.Gold;transcribe.Foreground=MainWindow.Navy;transcribe.Click+=async(_,_)=>await Run(Operation.Recognize,async token=>
         {
@@ -50,27 +56,48 @@ public sealed class TranscriptionWindow:Window
         grid.ItemsSource=rows;
         foreach(var field in new[]{("Inicio (s)","Start"),("Final (s)","End")})grid.Columns.Add(new DataGridTextColumn{Header=field.Item1,Width=100,Binding=new Binding(field.Item2){StringFormat="0.000",ConverterCulture=CultureInfo.CurrentCulture,UpdateSourceTrigger=UpdateSourceTrigger.LostFocus,ValidatesOnExceptions=true}});
         var textStyle=new Style(typeof(TextBlock));textStyle.Setters.Add(new Setter(TextBlock.TextWrappingProperty,TextWrapping.Wrap));textStyle.Setters.Add(new Setter(FrameworkElement.MarginProperty,new Thickness(5)));
-        grid.Columns.Add(new DataGridTextColumn{Header="Texto · puedes corregirlo",MinWidth=300,Width=new DataGridLength(1,DataGridLengthUnitType.Star),Binding=new Binding("Text"){UpdateSourceTrigger=UpdateSourceTrigger.LostFocus},ElementStyle=textStyle});grid.SizeChanged+=(_,_)=>{if(grid.ActualWidth>0)grid.Columns[2].Width=new DataGridLength(Math.Max(300,grid.ActualWidth-225));};Grid.SetRow(grid,2);root.Children.Add(grid);
+        grid.Columns.Add(new DataGridTextColumn{Header="Texto · puedes corregirlo",MinWidth=300,Width=new DataGridLength(1,DataGridLengthUnitType.Star),Binding=new Binding("Text"){UpdateSourceTrigger=UpdateSourceTrigger.LostFocus},ElementStyle=textStyle});Grid.SetRow(grid,2);root.Children.Add(grid);
         var footer=new StackPanel();Grid.SetRow(footer,3);root.Children.Add(footer);var edits=new WrapPanel();edits.Children.Add(Action("Unir filas seleccionadas",()=>{Merge();return Task.CompletedTask;}));edits.Children.Add(Action("Dividir fila por frases",()=>{SplitSentence();return Task.CompletedTask;}));edits.Children.Add(Action("Copiar texto",()=>{CommitGrid();Clipboard.SetText(string.Join(" ",rows.Select(r=>r.Text.Trim())));return Task.CompletedTask;}));footer.Children.Add(edits);
         footer.Children.Add(Label("Los tiempos son aproximados. Si cambias la cantidad de palabras de una fila, su ritmo se redistribuye entre Inicio y Final. Cada fragmento puede tener después su personaje o plano del juicio.",12));
         var options=new WrapPanel();onlyText.Margin=fragments.Margin=new Thickness(0,6,20,6);onlyText.IsChecked=!createFragments;fragments.IsChecked=createFragments;options.Children.Add(onlyText);options.Children.Add(fragments);options.Children.Add(destination);destination.IsEnabled=canReplace;footer.Children.Add(options);
         footer.Children.Add(Label("Se conservan personaje, posición y fondo del clip de referencia. Las animaciones por palabras se asignan después sobre el texto nuevo. Puedes deshacer la aplicación.",12));
-        var final=new WrapPanel();StyleButton(apply);apply.Content="APLICAR RESULTADO";apply.Background=Brushes.Gold;apply.Foreground=MainWindow.Navy;apply.Click+=(_,_)=>Apply();final.Children.Add(apply);StyleButton(cancel);cancel.Click+=(_,_)=>stop?.Cancel();final.Children.Add(cancel);footer.Children.Add(final);footer.Children.Add(status);
-        Loaded+=async(_,_)=>{try{modelReady=await LocalTranscription.ModelReady();UpdateModel();UpdateControls();}catch(Exception ex){status.Text=ex.Message;}};
+        var final=new WrapPanel();StyleButton(apply);apply.Content="APLICAR RESULTADO";apply.Background=Brushes.Gold;apply.Foreground=MainWindow.Navy;apply.Click+=(_,_)=>Apply();final.Children.Add(apply);StyleButton(cancel);cancel.Click+=(_,_)=>stop?.Cancel();final.Children.Add(cancel);footer.Children.Add(final);
+        Loaded+=async(_,_)=>await Run(Operation.CheckModel,async token=>{ShowModelProgress(new(ModelTransferStage.Checking));modelReady=await LocalTranscription.ModelReady(token);UpdateModel();status.Text=modelReady?"Modelo local detectado. Graba o importa un audio para empezar.":"Paso 1: descarga el modelo. Paso 2: graba o importa audio. Paso 3: transcribe y revisa.";});
         Closing+=(_,e)=>{if(operation==Operation.None)return;e.Cancel=true;closeRequested=true;stop?.Cancel();};
         if(current!=null)SetAudio(current);UpdateControls();
     }
     void SetAudio(RecordedVoice voice){audio=voice;duration=voice.Duration;rows.Clear();source.Text=$"{voice.Name} · {voice.Duration:0.00} s audibles · se usan el recorte y desplazamiento actuales";UpdateControls();}
-    void UpdateModel()=>model.Text=modelReady?"Modelo multilingüe base listo · funciona sin Internet":"Falta el modelo base. Se descarga una vez; tus audios se procesan localmente.";
+    void UpdateModel()
+    {
+        model.Text=modelReady?"✓ Modelo instalado y listo para transcribir":"Modelo local pendiente · descarga única";model.Foreground=modelReady?Brushes.LightGreen:Brushes.Gold;
+        modelProgress.Visibility=Visibility.Collapsed;modelProgress.IsIndeterminate=false;
+        modelHint.Text=modelReady?"Ya está disponible en este equipo. No necesitas descargarlo de nuevo; funciona sin Internet.":"Descarga 148 MB una vez, o elige el archivo ggml-base.bin si ya lo tienes.";
+        downloadModel.Content=modelReady?"✓ Modelo instalado":"Descargar modelo · 148 MB";
+    }
+    void ShowModelProgress(ModelTransferProgress progress)
+    {
+        model.Text=progress.Message;model.Foreground=Brushes.Gold;modelProgress.Visibility=Visibility.Visible;
+        modelProgress.IsIndeterminate=progress.Stage is not ModelTransferStage.Downloading and not ModelTransferStage.Ready;modelProgress.Value=progress.Stage==ModelTransferStage.Ready?100:progress.Percent;
+        modelHint.Text=progress.Stage==ModelTransferStage.Downloading?"Mantén esta ventana abierta. Puedes cancelar y volver a intentarlo.":"La preparación puede tardar unos momentos. El estado se actualizará aquí.";
+    }
+    async Task PrepareModel(string? file,CancellationToken token)
+    {
+        long serial=++modelTransferSerial;ShowModelProgress(new(file==null?ModelTransferStage.Connecting:ModelTransferStage.Verifying));status.Text=file==null?"Preparando el modelo local…":"Comprobando el archivo seleccionado…";
+        var reporter=new Progress<ModelTransferProgress>(p=>{if(operation==Operation.Download && serial==modelTransferSerial)ShowModelProgress(p);});
+        if(file==null)await LocalTranscription.DownloadModel(reporter,token);else await LocalTranscription.InstallModel(file,token,reporter);
+        modelReady=await LocalTranscription.ModelReady(token);if(!modelReady)throw new System.IO.InvalidDataException("No se pudo confirmar el modelo. Vuelve a intentarlo.");
+        UpdateModel();status.Text=audio==null?"✓ Modelo listo. Ahora graba o importa un audio para transcribir.":"✓ Modelo listo. Ya puedes pulsar TRANSCRIBIR AUDIO.";
+    }
     void UpdateControls()
     {
         bool idle=operation==Operation.None;foreach(var button in controls)button.IsEnabled=idle;record.IsEnabled=idle || operation==Operation.Record;record.Content=operation==Operation.Record?"■ Detener grabación":"● Grabar micrófono";
-        transcribe.IsEnabled=idle && audio!=null && modelReady;apply.IsEnabled=idle && rows.Count>0;devices.IsEnabled=language.IsEnabled=names.IsEnabled=grid.IsEnabled=idle;cancel.Visibility=idle?Visibility.Collapsed:Visibility.Visible;cancel.Content=operation==Operation.Record?"Detener grabación":"Cancelar operación";
+        downloadModel.IsEnabled=idle && !modelReady;downloadModel.Visibility=modelReady?Visibility.Collapsed:Visibility.Visible;chooseModel.IsEnabled=idle;cancelModel.Visibility=operation==Operation.Download?Visibility.Visible:Visibility.Collapsed;
+        transcribe.IsEnabled=idle && audio!=null && modelReady;apply.IsEnabled=idle && rows.Count>0;devices.IsEnabled=language.IsEnabled=names.IsEnabled=grid.IsEnabled=idle;cancel.Visibility=idle || operation is Operation.Download or Operation.CheckModel?Visibility.Collapsed:Visibility.Visible;cancel.Content=operation==Operation.Record?"Detener grabación":"Cancelar operación";
     }
     async Task Run(Operation kind,Func<CancellationToken,Task> action)
     {
         if(operation!=Operation.None)return;operation=kind;stop=new();UpdateControls();
-        try{await action(stop.Token);}catch(OperationCanceledException){status.Text="Operación cancelada. Puedes volver a intentarlo.";}catch(Exception ex){status.Text=ex.Message;}
+        try{await action(stop.Token);}catch(OperationCanceledException){if(kind is Operation.Download or Operation.CheckModel)UpdateModel();status.Text="Operación cancelada. Puedes volver a intentarlo.";}catch(Exception ex){if(kind is Operation.Download or Operation.CheckModel){UpdateModel();model.Text=modelReady?"El modelo instalado sigue disponible":"No se pudo preparar el modelo";model.Foreground=Brushes.Salmon;modelHint.Text=ex.Message;}status.Text=ex.Message;}
         finally{stop.Dispose();stop=null;operation=Operation.None;UpdateControls();if(closeRequested)Close();}
     }
     bool CommitGrid()=>grid.CommitEdit(DataGridEditingUnit.Cell,true) && grid.CommitEdit(DataGridEditingUnit.Row,true);
@@ -98,6 +125,16 @@ public sealed class TranscriptionWindow:Window
     }
     Button Action(string title,Func<Task> action){var b=new Button{Content=title};StyleButton(b);b.Click+=async(_,_)=>{try{await action();}catch(Exception ex){status.Text=ex.Message;}UpdateControls();};controls.Add(b);return b;}
     public void VerifyReviewLayout(){if(grid.Columns[2].ActualWidth<300)throw new System.IO.InvalidDataException("Transcript text column is too narrow");}
+    public async Task VerifyModelFeedback()
+    {
+        await Run(Operation.Download,token=>PrepareModel(null,token));
+        if(!modelReady || downloadModel.IsEnabled || !model.Text.Contains("listo") || !status.Text.Contains("Modelo listo"))throw new System.IO.InvalidDataException("Already installed model must visibly report success without downloading");
+        if(transcribe.IsEnabled!=(audio!=null))throw new System.IO.InvalidDataException("Transcription availability must reflect audio and verified model");
+        ShowModelProgress(new(ModelTransferStage.Connecting));if(!modelProgress.IsIndeterminate)throw new System.IO.InvalidDataException("Connection state must show activity");
+        ShowModelProgress(new(ModelTransferStage.Downloading,LocalTranscription.ModelSize/2));if(modelProgress.IsIndeterminate || Math.Abs(modelProgress.Value-50)>.1 || !model.Text.Contains("50%"))throw new System.IO.InvalidDataException("Download percentage must remain next to model controls");
+        ShowModelProgress(new(ModelTransferStage.Verifying));if(!modelProgress.IsIndeterminate || !model.Text.Contains("Verificando"))throw new System.IO.InvalidDataException("Verification state must remain visible");
+        UpdateModel();UpdateControls();
+    }
     public void TestReview(TranscriptDocument document){rows.Clear();foreach(var part in document.Parts)rows.Add(part);duration=document.Duration;modelReady=true;UpdateModel();UpdateControls();}
     static void StyleButton(Button b){b.Margin=new Thickness(0,4,8,4);b.Padding=new Thickness(9,7,9,7);b.Background=new SolidColorBrush(Color.FromRgb(35,52,82));b.Foreground=Brushes.White;b.BorderThickness=new Thickness(0);}
     static TextBlock Label(string text,double size,Brush? brush=null)=>new(){Text=text,FontSize=size,Foreground=brush??Brushes.LightSteelBlue,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,4,0,4)};

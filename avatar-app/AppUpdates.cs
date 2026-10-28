@@ -41,7 +41,7 @@ public sealed class AppUpdates
         if(Busy || Available==null || !Installed)return;Busy=true;Progress=0;Status="Descargando actualización…";Changed?.Invoke();
         try
         {
-            await manager.DownloadUpdatesAsync(Available,n=>{Progress=n;Changed?.Invoke();},cancel);
+            await manager.DownloadUpdatesAsync(Available,n=>{Progress=n;Status=$"Descargando actualización… {n}%";Changed?.Invoke();},cancel);
             Downloaded=true;Status="Descarga verificada. Puedes instalarla y reiniciar cuando estés listo.";
         }
         catch(OperationCanceledException){Status="Descarga cancelada. Tu versión actual sigue disponible.";}

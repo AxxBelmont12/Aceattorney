@@ -9,6 +9,20 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace AvatarStudio;
+public enum ModelTransferStage { Checking,Connecting,Downloading,Verifying,Copying,Ready }
+public sealed record ModelTransferProgress(ModelTransferStage Stage,long Bytes=0,long Total=LocalTranscription.ModelSize)
+{
+    public double Percent=>Total>0?Math.Clamp(Bytes*100d/Total,0,100):0;
+    public string Message=>Stage switch
+    {
+        ModelTransferStage.Checking=>"Comprobando el modelo instalado…",
+        ModelTransferStage.Connecting=>"Conectando para descargar el modelo…",
+        ModelTransferStage.Downloading=>$"Descargando modelo: {Percent:0}% · {Bytes/1_000_000d:0.0} / {Total/1_000_000d:0.0} MB",
+        ModelTransferStage.Verifying=>"Verificando la integridad del modelo…",
+        ModelTransferStage.Copying=>"Guardando el modelo en este equipo…",
+        _=>"Modelo instalado y listo para transcribir"
+    };
+}
 public static class LocalTranscription
 {
     public const string ModelHash="60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe";
@@ -23,24 +37,26 @@ public static class LocalTranscription
         string key=new FileInfo(ModelPath).LastWriteTimeUtc.Ticks.ToString();if(checkedModel==key)return true;
         await using var stream=File.OpenRead(ModelPath);bool valid=Convert.ToHexString(await SHA256.HashDataAsync(stream,cancel)).Equals(ModelHash,StringComparison.OrdinalIgnoreCase);if(valid)checkedModel=key;return valid;
     }
-    public static async Task DownloadModel(IProgress<string>? progress,CancellationToken cancel)
+    public static async Task DownloadModel(IProgress<ModelTransferProgress>? progress,CancellationToken cancel)
     {
         await Gate.WaitAsync(cancel);string? part=null;
         try
         {
-            if(await ModelReady(cancel))return;Directory.CreateDirectory(Path.GetDirectoryName(ModelPath)!);part=ModelPath+"."+Guid.NewGuid().ToString("N")+".part";
+            progress?.Report(new(ModelTransferStage.Checking));
+            if(await ModelReady(cancel)){progress?.Report(new(ModelTransferStage.Ready,ModelSize));return;}Directory.CreateDirectory(Path.GetDirectoryName(ModelPath)!);part=ModelPath+"."+Guid.NewGuid().ToString("N")+".part";
+            progress?.Report(new(ModelTransferStage.Connecting));
             using var client=new HttpClient{Timeout=TimeSpan.FromMinutes(20)};using var response=await client.GetAsync(ModelUrl,HttpCompletionOption.ResponseHeadersRead,cancel);response.EnsureSuccessStatusCode();
             await using(var input=await response.Content.ReadAsStreamAsync(cancel))await using(var output=File.Create(part))
-            {var block=new byte[131072];long total=0;int count;while((count=await input.ReadAsync(block,cancel))>0){total+=count;if(total>ModelSize)throw new InvalidDataException("La descarga del modelo no tiene el tamaño esperado.");await output.WriteAsync(block.AsMemory(0,count),cancel);progress?.Report($"Descargando modelo: {total*100/ModelSize}% · {total/1_000_000} / 148 MB");}}
-            progress?.Report("Verificando el modelo…");await VerifyModelFile(part,cancel);File.Move(part,ModelPath,true);checkedModel=null;
+            {var block=new byte[131072];long total=0;int count;long nextReport=0;while((count=await input.ReadAsync(block,cancel))>0){total+=count;if(total>ModelSize)throw new InvalidDataException("La descarga del modelo no tiene el tamaño esperado.");await output.WriteAsync(block.AsMemory(0,count),cancel);if(Environment.TickCount64>=nextReport || total==ModelSize){progress?.Report(new(ModelTransferStage.Downloading,total));nextReport=Environment.TickCount64+100;}}}
+            progress?.Report(new(ModelTransferStage.Verifying,ModelSize));await VerifyModelFile(part,cancel);cancel.ThrowIfCancellationRequested();File.Move(part,ModelPath,true);checkedModel=null;progress?.Report(new(ModelTransferStage.Ready,ModelSize));
         }
         finally{if(part!=null && File.Exists(part))File.Delete(part);Gate.Release();}
     }
-    public static async Task InstallModel(string path,CancellationToken cancel=default)
+    public static async Task InstallModel(string path,CancellationToken cancel=default,IProgress<ModelTransferProgress>? progress=null)
     {
-        await VerifyModelFile(path,cancel);if(Path.GetFullPath(path).Equals(Path.GetFullPath(ModelPath),StringComparison.OrdinalIgnoreCase))return;
+        progress?.Report(new(ModelTransferStage.Verifying));await VerifyModelFile(path,cancel);if(Path.GetFullPath(path).Equals(Path.GetFullPath(ModelPath),StringComparison.OrdinalIgnoreCase)){progress?.Report(new(ModelTransferStage.Ready,ModelSize));return;}
         await Gate.WaitAsync(cancel);string part=ModelPath+"."+Guid.NewGuid().ToString("N")+".part";
-        try{Directory.CreateDirectory(Path.GetDirectoryName(ModelPath)!);await using(var input=File.OpenRead(path))await using(var output=File.Create(part))await input.CopyToAsync(output,cancel);cancel.ThrowIfCancellationRequested();File.Move(part,ModelPath,true);checkedModel=null;}
+        try{progress?.Report(new(ModelTransferStage.Copying));Directory.CreateDirectory(Path.GetDirectoryName(ModelPath)!);await using(var input=File.OpenRead(path))await using(var output=File.Create(part))await input.CopyToAsync(output,cancel);cancel.ThrowIfCancellationRequested();File.Move(part,ModelPath,true);checkedModel=null;progress?.Report(new(ModelTransferStage.Ready,ModelSize));}
         finally{if(File.Exists(part))File.Delete(part);Gate.Release();}
     }
     static async Task VerifyModelFile(string path,CancellationToken cancel)
