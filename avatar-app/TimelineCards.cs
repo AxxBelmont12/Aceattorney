@@ -70,6 +70,7 @@ public sealed partial class DialogueSequenceWindow
             if(!resizingClip)return;string? id=resizingId;resizingClip=false;resizingId=null;
             if(!e.Canceled && id!=null)ResizeClip(id,resizeStart+resizeDelta);else Refresh(id);e.Handled=true;
         }));root.AppendChild(thumb);
+        var remove=new FrameworkElementFactory(typeof(Button));remove.SetValue(ContentControl.ContentProperty,"×");remove.SetValue(FrameworkElement.WidthProperty,22d);remove.SetValue(FrameworkElement.HeightProperty,22d);remove.SetValue(FrameworkElement.HorizontalAlignmentProperty,HorizontalAlignment.Right);remove.SetValue(FrameworkElement.VerticalAlignmentProperty,VerticalAlignment.Top);remove.SetValue(FrameworkElement.MarginProperty,new Thickness(0,3,13,0));remove.SetValue(Control.BackgroundProperty,new SolidColorBrush(Color.FromRgb(52,38,52)));remove.SetValue(Control.ForegroundProperty,Brushes.LightSalmon);remove.SetValue(Control.BorderThicknessProperty,new Thickness(0));remove.SetValue(Control.FontSizeProperty,17d);remove.SetValue(UIElement.FocusableProperty,false);remove.SetValue(Panel.ZIndexProperty,20);remove.SetValue(FrameworkElement.ToolTipProperty,"Eliminar este fragmento · puedes deshacer con Ctrl+Z");remove.AddHandler(ButtonBase.ClickEvent,new RoutedEventHandler((sender,e)=>{if(sender is FrameworkElement {DataContext:Card c})RemoveClip(c.Id);e.Handled=true;}));root.AppendChild(remove);
         return new DataTemplate{VisualTree=root};
     }
     void ResizeClip(string id,double duration)

@@ -16,6 +16,8 @@ public sealed class MainWindow : Window
     readonly Preferences settings;
     readonly bool testing;
     readonly AppUpdates updates=new();
+    readonly UpdateNotificationGate updateNotifications=new();
+    UpdatesWindow? updatesWindow;
     readonly ComboBox characters = new(), modes = new(), backgrounds = new();
     readonly ListBox poses = new();
     readonly TextBlock status = new(), shortcutLabel = new(), talkLabel = new(), poseTitle = new();
@@ -86,9 +88,11 @@ public sealed class MainWindow : Window
         backgrounds.Width = 190; backgrounds.VerticalAlignment = VerticalAlignment.Center; outputLine.Children.Add(backgrounds);
         var show = Button("ABRIR VENTANA DEL AVATAR →", (_, _) => OpenOutput()); show.Margin = new Thickness(12, 0, 0, 0); show.Background = Brushes.Gold; show.Foreground = Navy; outputLine.Children.Add(show); footer.Children.Add(outputLine);
         footer.Children.Add(Text("OBS: captura «Avatar Studio · Salida». Con fondo verde, añade el filtro de clave de color.", 12));
-        var updateButton=Button("Versión "+AppUpdates.Version+" · Actualizaciones",(_,_)=>{new UpdatesWindow(updates,settings){Owner=this}.ShowDialog();});footer.Children.Add(updateButton);
-        updates.Changed+=()=>{if(!Dispatcher.HasShutdownStarted)Dispatcher.BeginInvoke(()=>updateButton.Content=updates.AvailableVersion is {} version?"Nueva versión "+version+" · Ver actualización":"Versión "+AppUpdates.Version+" · Actualizaciones");};
+        var updateButton=Button("Versión "+AppUpdates.Version+" · Actualizaciones",(_,_)=>OpenUpdates());footer.Children.Add(updateButton);
+        updates.Changed+=()=>{if(!Dispatcher.HasShutdownStarted)Dispatcher.BeginInvoke(()=>{updateButton.Content=updates.AvailableVersion is {} version?"Nueva versión "+version+" · Ver actualización":"Versión "+AppUpdates.Version+" · Actualizaciones";MaybeShowUpdate();});};
         Loaded+=async(_,_)=>{if(!testing && settings.CheckUpdatesOnStart)await updates.Check();};
+        Activated+=(_,_)=>Dispatcher.BeginInvoke(MaybeShowUpdate);
+        IsEnabledChanged+=(_,_)=>{if(IsEnabled)Dispatcher.BeginInvoke(MaybeShowUpdate);};
         status.TextWrapping = TextWrapping.Wrap; status.Margin = new Thickness(0, 8, 0, 0); status.Foreground = Brushes.LightSteelBlue; footer.Children.Add(status);
 
         characters.SelectionChanged += (_, _) =>
@@ -145,6 +149,19 @@ public sealed class MainWindow : Window
         choosing=true;toggleTalking=false;SetTalking(false);timer.Stop();hotkeys?.Clear();
         try { new DialogueSequenceWindow(assets,new DialogueProject{Text="",DefaultPose=current.Id}){Owner=this}.ShowDialog(); }
         finally { choosing=false;assets.ClearCache();lastFrame=-1;started=clock.Elapsed.TotalSeconds;Tick();Register();timer.Start(); }
+    }
+    void MaybeShowUpdate()
+    {
+        if(testing || !settings.CheckUpdatesOnStart || updatesWindow!=null || updates.Busy || updates.Updating)return;
+        if(updateNotifications.TryShow(updates.AvailableVersion,IsVisible && IsActive && IsEnabled))OpenUpdates();
+    }
+    void OpenUpdates()
+    {
+        if(updatesWindow!=null){updatesWindow.Activate();return;}
+        choosing=true;toggleTalking=false;SetTalking(false);timer.Stop();hotkeys?.Clear();
+        updateNotifications.MarkShown(updates.AvailableVersion);
+        try{updatesWindow=new UpdatesWindow(updates,settings){Owner=this};updatesWindow.ShowDialog();}
+        finally{updateNotifications.MarkShown(updates.AvailableVersion);updatesWindow=null;choosing=false;lastFrame=-1;started=clock.Elapsed.TotalSeconds;Tick();Register();if(!testing)timer.Start();}
     }
     void Assign(bool talk)
     {

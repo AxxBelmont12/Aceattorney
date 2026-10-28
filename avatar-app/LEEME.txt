@@ -1,4 +1,4 @@
-AXX BELMONT · AVATAR STUDIO 0.14.1
+AXX BELMONT · AVATAR STUDIO 0.14.2
 ESTUDIO DE VIDEO, MODO JUICIO Y AUDIO A TEXTO
 
 INSTALACIÓN Y ACTUALIZACIONES
@@ -7,16 +7,26 @@ https://github.com/AxxBelmont12/Aceattorney/releases/latest
 Es el único archivo que necesitas llevar a otra PC. Instala por usuario y crea
 accesos directos. No requiere instalar .NET por separado.
 
-En la ventana principal, Actualizaciones permite buscar, descargar y, cuando
-estés listo, instalar y reiniciar. Por defecto se consulta GitHub al abrir;
-puedes desactivar la consulta automática. Una consulta no descarga ni instala.
-Las actualizaciones se publican como nuevas versiones en GitHub Releases;
-un cambio de código sin una nueva publicación no genera una actualización.
+Cuando haya una nueva versión, se mostrará un aviso al volver a la ventana
+principal. Actualizar y reiniciar descarga, verifica e instala en una sola acción.
+Ahora no cierra el aviso y permite seguir trabajando. Puedes cancelar durante
+la descarga. La misma versión no vuelve a mostrar el aviso durante esa sesión.
+Si estás en el editor, el aviso espera; no interrumpe una exportación o diálogo.
+Actualizaciones también permite buscar manualmente y desactivar el aviso al abrir.
+Las actualizaciones se publican en GitHub Releases; un commit sin publicación
+no cambia las instalaciones existentes.
 
 Los proyectos, la biblioteca y los ajustes siguen en la carpeta de datos local
 de AxxBelmont/AvatarStudio, separados de la instalación. El modelo de voz se
 conserva entre versiones. La primera migración de una copia portátil requiere
 usar el instalador; después puedes actualizar desde la aplicación.
+
+BORRAR FRAGMENTOS
+Pulsa la × de la tarjeta, usa Eliminar fragmento junto a la línea de tiempo,
+o abre el menú de clic derecho. Supr elimina el seleccionado cuando estás en
+la línea de tiempo; dentro del texto borra letras. Ctrl+Z o el botón ↶ recuperan
+el fragmento eliminado y sus últimos cambios de texto válidos. Se selecciona
+el fragmento siguiente o, si era el último, el anterior. Puedes dejar el montaje vacío.
 
 AUDIO A TEXTO · DOS FORMAS DE TRABAJAR
 En el editor, abre Audio > Audio a texto. Puedes grabar con tu micrófono,

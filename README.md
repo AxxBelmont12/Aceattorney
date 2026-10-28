@@ -10,7 +10,7 @@ El instalador crea accesos directos y una entrada de desinstalación. Una copia 
 
 ## Actualizar
 
-En la ventana principal, abre **Actualizaciones**. Se buscan versiones estables de GitHub Releases, se descarga el paquete y se verifica antes de instalar. Pulsa **Instalar y reiniciar** cuando estés listo. Puedes desactivar la búsqueda al inicio. No se descargan ni instalan actualizaciones sin que lo elijas.
+Al abrir la aplicación se buscan versiones estables de GitHub Releases. Si hay una nueva, aparece un aviso con **Actualizar y reiniciar** o **Ahora no**. Al aceptar, la descarga, verificación, instalación y reinicio se realizan en una sola operación. El aviso espera si estás en el editor y no se repite durante esa sesión. También puedes buscar manualmente en **Actualizaciones** o desactivar los avisos al inicio.
 
 Una nueva versión publicada genera un aviso; un commit por sí solo no cambia las instalaciones existentes.
 
@@ -18,7 +18,7 @@ Una nueva versión publicada genera un aviso; un commit por sí solo no cambia l
 
 - 27 personajes y 169 poses: habla, reposo y gestos, con atajos personalizables.
 - Ventana de personaje para capturar en OBS, espejo, posición y velocidad.
-- Editor de video con línea de tiempo, fragmentos, escenas, biblioteca y recuperación de versiones.
+- Editor de video con línea de tiempo, fragmentos, escenas, biblioteca y recuperación de versiones. Elimina con ×, Supr, clic derecho o el botón de la línea de tiempo; recupera con Ctrl+Z.
 - Diálogo con escritura progresiva, sonidos y animaciones asignadas a palabras.
 - Modo juicio, escenarios, estrados, fondos propios y elementos decorativos.
 - Audio propio, recortes, forma de onda y sincronización de boca.
