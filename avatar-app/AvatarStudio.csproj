@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Axx-Belmont-Avatar-Studio</AssemblyName>
+    <Company>Axx Belmont</Company>
+    <Product>Axx Belmont · Avatar Studio</Product>
+    <Version>0.14.0</Version>
+    <ApplicationIcon>assets/app.ico</ApplicationIcon>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="assets/scenes.zip" LogicalName="Scenes" />
+    <EmbeddedResource Include="assets/avatars.zip" LogicalName="Avatars" />
+    <EmbeddedResource Include="assets/dialogue/blip-003.wav" LogicalName="DialogueBlip003" />
+    <EmbeddedResource Include="assets/dialogue/blip-004.wav" LogicalName="DialogueBlip004" />
+    <EmbeddedResource Include="assets/dialogue/ffmpeg.exe.gz" LogicalName="DialogueEncoder" />
+    <EmbeddedResource Include="assets/dialogue/ffmpeg.json" LogicalName="DialogueEncoderInfo" />
+    <EmbeddedResource Include="assets/dialogue/FFmpeg-LICENSE.txt" LogicalName="DialogueEncoderLicense" />
+    <Resource Include="assets/dialogue/game-font.otf" />
+    <EmbeddedResource Include="assets/transcription/whisper-runtime.zip" LogicalName="SpeechRuntime" />
+    <EmbeddedResource Include="assets/transcription/runtime.json" LogicalName="SpeechRuntimeInfo" />
+    <EmbeddedResource Include="assets/transcription/LICENSE-whisper.txt" LogicalName="SpeechLicense" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Velopack" Version="1.2.161" />
+  </ItemGroup>
+</Project>

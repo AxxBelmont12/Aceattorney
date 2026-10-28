@@ -1,0 +1,52 @@
+name: Publicar Avatar Studio
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Validar versión de la etiqueta
+        shell: pwsh
+        run: |
+          [xml]$project=Get-Content avatar-app/AvatarStudio.csproj
+          $version=[string]$project.Project.PropertyGroup.Version
+          if($env:GITHUB_REF_NAME -ne ('v'+$version)){throw 'La etiqueta no coincide con la versión del proyecto.'}
+      - name: Preparar recursos verificados
+        shell: pwsh
+        run: ./tools/fetch_avatar_assets.ps1
+      - name: Compilar, verificar y crear instalador
+        shell: pwsh
+        run: ./tools/release_avatar_studio.ps1
+      - name: Publicar GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version=$env:GITHUB_REF_NAME.Substring(1)
+          $folder="dist/avatar-studio-$version-installer"
+          $files=@("$folder/Instalar-Axx-Belmont-Avatar-Studio.exe","$folder/SHA256SUMS.txt","$folder/LEEME.txt","$folder/releases.win.json")
+          $files+=@(Get-ChildItem "$folder/*-full.nupkg" | ForEach-Object FullName)
+          gh release create $env:GITHUB_REF_NAME @files --verify-tag --title "Avatar Studio $version" --notes-file "releases/$env:GITHUB_REF_NAME.md" --latest
+          if($LASTEXITCODE -ne 0){throw 'No se pudo publicar la versión.'}
+      - name: Conservar informes de verificación
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verificaciones
+          path: |
+            artifacts/qa-*/**/*.json
+            artifacts/qa-*/**/*.png
+            *selftest-error.txt

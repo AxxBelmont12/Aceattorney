@@ -1,0 +1,10 @@
+bin/
+obj/
+.tools/
+artifacts/
+dist/
+avatar-work/
+*.user
+*.log
+*selftest-error.txt
+avatar-app/assets/

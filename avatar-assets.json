@@ -1,0 +1,78 @@
+{
+  "url": "https://github.com/AxxBelmont12/Aceattorney/releases/download/assets-v1/avatar-assets-v1.zip",
+  "sha256": "b63f956af75bb5233d4e420171792c5c048d91dcb8e2cba0fe3a1a3f4bc29315",
+  "files": [
+    {
+      "path": "app.ico",
+      "sha256": "c8d59334165d35295c4aed167b79fe5dd4f56d9fb7a1eab6875fbff1a73e5f33"
+    },
+    {
+      "path": "avatars.zip",
+      "sha256": "3fbd9cd0c4b27a46948181fce0519fc3682434bf3a44ff1361d8770e9cadd88d"
+    },
+    {
+      "path": "build-report.json",
+      "sha256": "bfd6f8e23c0a12c45ad788edfe1a2b9fa7109fe40f106522b0df8a63735c52ee"
+    },
+    {
+      "path": "dialogue/blip-003.wav",
+      "sha256": "917faad9218e6bbeafb9684d0a6aa62969035030c85af5906c2c0d114e0deba5"
+    },
+    {
+      "path": "dialogue/blip-004.wav",
+      "sha256": "474ee31348147eb0ee2e2ce1c1d20b574635044cc3c49d3aa5a04336f84f94a7"
+    },
+    {
+      "path": "dialogue/FFmpeg-LICENSE.txt",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "path": "dialogue/FFmpeg-README.txt",
+      "sha256": "09124e0f7c3d43d9054c62726a176371e8b99960732f51ddd68c6ae68982f434"
+    },
+    {
+      "path": "dialogue/ffmpeg.exe.gz",
+      "sha256": "311bb56a40b8206b1ac6d1b795156a1e7e5ece5d60d92301254a7352c50bcdcd"
+    },
+    {
+      "path": "dialogue/ffmpeg.json",
+      "sha256": "795c469037716f2e1eff3c3b1cb8ba4b3d54211c635ec8cbe8f1798f091d43e0"
+    },
+    {
+      "path": "dialogue/game-font.otf",
+      "sha256": "f57a8cf6bdfb3735588c3844df488b386b35f9b6943a9d5d1920298862c2ca12"
+    },
+    {
+      "path": "installer-splash.png",
+      "sha256": "4a25001542c6f3e80918f01c30f9ca9d574223b28c73a4261c6dab1c1929aafa"
+    },
+    {
+      "path": "scenes.zip",
+      "sha256": "a19149847bba783e5767c46ba479853135a6af4541918f154a8eecb2e39e165d"
+    },
+    {
+      "path": "transcription/LICENSE-model.txt",
+      "sha256": "b5d65a59060e68c4ff940e1eddfa6f94b2d68fdf58ed7f4dd57721c997e35e9d"
+    },
+    {
+      "path": "transcription/LICENSE-whisper.txt",
+      "sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d"
+    },
+    {
+      "path": "transcription/runtime.json",
+      "sha256": "290ef8ecd6da5efc8428612afee3b2bb4653ea22f974bcb9c5f2333bbb475339"
+    },
+    {
+      "path": "transcription/TRANSCRIPCION.txt",
+      "sha256": "e0cbc96ea7769c255d822991ba6573f3c70f4821cbad2015d4df6c6658166116"
+    },
+    {
+      "path": "transcription/whisper-runtime.zip",
+      "sha256": "452e571903b854999cdbbeb0ae66d9fc9f377ddf1a1deeef44b27162b1db3741"
+    },
+    {
+      "path": "Velopack-LICENSE.txt",
+      "sha256": "91845db83551c877ebbb1118e0fb92e4e527290d23b995c55dcd438b3293943f"
+    }
+  ]
+}

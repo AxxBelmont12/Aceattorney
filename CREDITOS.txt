@@ -1,0 +1,14 @@
+Axx Belmont · Avatar Studio
+Aplicación y composición del editor: Axx Belmont.
+
+Los personajes, gráficos, escenarios, tipografía y sonidos de Apollo Justice
+pertenecen a Capcom y a sus respectivos titulares. No se concede una licencia
+sobre esos recursos mediante este repositorio.
+
+FFmpeg: consulta FFmpeg-LICENSE.txt, FFmpeg-README.txt y ffmpeg.json.
+whisper.cpp: MIT, autores de ggml; consulta LICENSE-whisper.txt.
+Whisper base: MIT, OpenAI; consulta LICENSE-model.txt.
+Velopack: consulta Velopack-LICENSE.txt.
+
+Las licencias se incluyen en la carpeta licencias de la instalación y en el
+paquete de recursos fijado por avatar-assets.json.

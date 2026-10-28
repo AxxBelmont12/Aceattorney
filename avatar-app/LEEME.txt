@@ -1,0 +1,200 @@
+AXX BELMONT · AVATAR STUDIO 0.14
+ESTUDIO DE VIDEO, MODO JUICIO Y AUDIO A TEXTO
+
+INSTALACIÓN Y ACTUALIZACIONES
+Descarga Instalar-Axx-Belmont-Avatar-Studio.exe desde:
+https://github.com/AxxBelmont12/Aceattorney/releases/latest
+Es el único archivo que necesitas llevar a otra PC. Instala por usuario y crea
+accesos directos. No requiere instalar .NET por separado.
+
+En la ventana principal, Actualizaciones permite buscar, descargar y, cuando
+estés listo, instalar y reiniciar. Por defecto se consulta GitHub al abrir;
+puedes desactivar la consulta automática. Una consulta no descarga ni instala.
+Las actualizaciones se publican como nuevas versiones en GitHub Releases;
+un cambio de código sin una nueva publicación no genera una actualización.
+
+Los proyectos, la biblioteca y los ajustes siguen en la carpeta de datos local
+de AxxBelmont/AvatarStudio, separados de la instalación. El modelo de voz se
+conserva entre versiones. La primera migración de una copia portátil requiere
+usar el instalador; después puedes actualizar desde la aplicación.
+
+AUDIO A TEXTO · DOS FORMAS DE TRABAJAR
+En el editor, abre Audio > Audio a texto. Puedes grabar con tu micrófono,
+importar una grabación o usar el audio del clip seleccionado. Detén la grabación
+con el botón Detener; el máximo es de 120 segundos por grabación. Guardar WAV
+permite conservar una copia independiente de lo que grabaste o recortaste.
+
+La primera vez descarga el modelo multilingüe base (148 MB), o selecciona un
+archivo ggml-base.bin que ya tengas. Se verifica su integridad. El modelo se
+comparte entre versiones en la carpeta local de Avatar Studio y no está dentro
+del EXE. Una vez descargado, la transcripción funciona sin Internet. No se envían
+las grabaciones a un servidor ni se necesita una cuenta o una API de pago.
+El motor whisper.cpp está incluido, con variante de CPU portátil y AVX2.
+
+Elige Español, English o detección automática. Puedes indicar nombres propios
+para orientar el reconocimiento. Pulsa Transcribir y revisa la tabla: nombres,
+puntuación e Inicio/Final son editables. Puedes unir filas consecutivas o dividir
+una fila por frases. Los tiempos y el reconocimiento son aproximados.
+
+- Transcribir como un diálogo crea un solo clip con toda la voz y el texto.
+- Crear fragmentos sincronizados crea un clip por frase. Conserva toda la voz,
+  incluyendo las pausas, para que puedas reorganizar y cambiar personajes o planos.
+
+Por defecto se añaden al montaje. También puedes elegir reemplazar el clip
+seleccionado. Aplicar se puede deshacer como una sola operación. Se conserva el
+personaje, posición y fondo de referencia; las animaciones por palabras se asignan
+sobre el texto nuevo. Puedes corregir un nombre sin perder los tiempos. Si cambias
+la cantidad de palabras, se redistribuyen dentro del intervalo de esa fila.
+En Mi voz y sincronización puedes activar/desactivar los tiempos por palabra.
+Añadir pausas o velocidades manuales desactiva esa sincronización para ese clip.
+La voz y los tiempos quedan guardados dentro del proyecto.
+El micrófono solo se activa al pulsar Grabar. La prueba física del micrófono debe
+realizarse con tu dispositivo; las verificaciones automáticas usan audios de prueba.
+
+MODO JUICIO
+Escenas > Modo juicio permite elegir defensa, fiscalía, acusado/testigo y juez.
+Puedes preparar las cuatro intervenciones de una vez. En el panel izquierdo,
+Modo juicio permite añadir después planos individuales, incluido un plano general.
+Los planos se ordenan, recortan y animan como los demás fragmentos.
+Incluye 12 fondos originales de Apollo Justice y cuatro estrados como capas
+separadas. El reparto utiliza los 27 personajes disponibles en la aplicación,
+incluyendo a Apollo, Phoenix abogado, Kristoph, Klavier y Winston Payne.
+Cada plano permite cambiar pose, posición, espejo, fondo, voz y texto.
+
+FONDOS, ELEMENTOS Y TRANSICIONES
+Escenas > Fondo y elementos del clip abre el compositor del fragmento actual.
+Fondos: transparente, color, imagen PNG/JPG propia, juzgado, sala de espera y
+variantes del tribunal. La imagen cubre la pantalla conservando su proporción.
+Elementos: cartelas con texto, sellos, flechas, marcos e imágenes propias.
+Selecciona un elemento para moverlo arrastrando en la vista previa o ajustar
+posición, tamaño, giro y opacidad. Puedes colocarlo delante o detrás del personaje.
+La mesa/estrado se coloca delante del personaje y detrás del cuadro de diálogo.
+Entrada y salida del personaje: corte, aparición suave o desplazamiento lateral;
+la duración es configurable. El cuadro de diálogo permanece legible.
+Puedes ocultar el cuadro o al personaje para crear planos de ambiente.
+Las imágenes propias quedan dentro del proyecto y del fragmento reutilizable.
+
+BIBLIOTECA
+Biblioteca guarda el fragmento seleccionado con texto, animaciones, recortes,
+voz, fondos y elementos. Busca por nombre o texto e insértalo en cualquier montaje.
+También puedes importar/exportar un archivo portable .avfragment.json.
+
+VOZ: ONDA, RECORTE Y DESPLAZAMIENTO
+En Mi voz y sincronización importa tu archivo. La onda muestra el audio original;
+arrastra sus dos límites dorados para recortarlo. También puedes escribir Inicio,
+Final y Desplazamiento en segundos. Un desplazamiento positivo retrasa la voz;
+uno negativo la adelanta y deja fuera del clip la parte que precede a su inicio.
+Pulsa la onda para colocar el cursor de la vista previa en ese punto.
+El recorte no destruye el archivo original ni los datos guardados en el proyecto.
+
+PAUSAS Y ÉNFASIS
+Selecciona palabras en el texto y pulsa el botón derecho para añadir una pausa,
+cambiar velocidad o destacar palabras. Sin selección, la pausa se aplica después
+de la letra anterior al cursor. Las poses ya asignadas se conservan.
+Los ajustes de pausa o velocidad pasan la escritura de ese clip a tiempos manuales;
+la grabación conserva su desplazamiento. Las etiquetas muestran pausas y velocidad.
+
+PROYECTO, ESCENAS Y RECUPERACIÓN
+Proyecto permite nombrar el montaje, buscar texto, personajes o fragmentos,
+asignarlos a escenas y saltar directamente al fragmento encontrado.
+Archivo > Versiones anteriores permite recuperar una versión y deshacer la recuperación.
+Mostrar versiones de todos mis proyectos permite volver a un montaje anterior aunque hayas creado otro.
+Se conservan hasta cinco versiones comprimidas por proyecto, con límite de espacio.
+Se guarda una versión al guardar el proyecto y periódicamente mientras editas.
+Archivo > Nuevo montaje crea otro proyecto; puedes deshacerlo para volver al anterior.
+
+EXPORTACIÓN POR LOTES
+Exportar por lotes permite video completo, un archivo por fragmento y/o por escena.
+Los clips de la misma escena se unen conservando su orden relativo en el montaje.
+Se crea una carpeta nueva con archivos numerados y un registro exportacion.json.
+Cancelar conserva los archivos completos y descarta el video que estaba a medias.
+MOV y WebM conservan transparencia. MP4 usa H.264/AAC y compone las zonas
+transparentes sobre negro; es útil para videos con fondo completo.
+
+Las herramientas del modo libre, las poses, los atajos y el modo de diálogo de la
+versión anterior siguen disponibles. El programa funciona localmente sin API ni
+pagos por uso y no modifica el juego ni los instaladores de traducción.
+
+CONVERSACIONES Y VOZ PROPIA
+
+1. Cada personaje recuerda pose, posición, tamaño, espejo y ritmo dentro del montaje. Los ajustes se guardan en su archivo.
+2. Las tarjetas muestran miniaturas, texto y duración. Azul: escritura o voz. Dorado: lectura.
+3. Arrastra el borde dorado derecho de una tarjeta para ajustar la duración. Ampliarlo añade tiempo de lectura; deshacer revierte toda la operación.
+4. En Animaciones sobre palabras activa Editar solo las palabras seleccionadas, selecciona texto y elige personaje, pose y comportamiento arriba. Pulsa Aplicar animación. Las etiquetas muestran el tramo y sus tiempos; puedes pulsarlas para revisarlo. Al desactivar el modo vuelves a editar la pose base.
+5. Solo este clip reproduce el fragmento seleccionado. Repetir lo mantiene en bucle. Reproducir montaje permite revisar toda la conversación.
+6. En Mi voz y sincronización importa WAV, MP3, M4A, OGG, FLAC o similares (máximo dos minutos por fragmento). La boca responde al sonido y descansa en los silencios. Ajusta el umbral si hay ruido de fondo. El volumen admite hasta 150%.
+   Ajustar escritura a la duración de mi voz distribuye proporcionalmente el texto; no transcribe ni alinea cada palabra automáticamente. Desactiva esa opción para ajustar el ritmo manualmente.
+   El audio sustituye a los bips del clip y queda dentro del proyecto: al llevarlo a otra computadora no necesitas el archivo de audio original.
+7. Plantillas prepara conversaciones de dos personajes enfrentados, narrador central o tres personajes. Sustituye los textos de ejemplo por tus diálogos.
+
+Ctrl+Enter: siguiente fragmento. Espacio fuera del cuadro de texto: reproducir/pausar. Ctrl+B: dividir. Ctrl+Z / Ctrl+Y: deshacer/rehacer.
+Los recortes, las divisiones y el orden conservan el audio y la colocación de cada personaje. Los nuevos fragmentos no heredan la grabación del anterior.
+El autoguardado trabaja en segundo plano. Guardar montaje crea el archivo portable .avmontage.json.
+MOV ProRes 4444 con transparencia y audio PCM: opción principal para DaVinci Resolve. WebM VP9 con transparencia y audio Opus: alternativa.
+
+MODO LIBRE Y OBS
+USO RÁPIDO
+1. Abre Axx-Belmont-Avatar-Studio.exe.
+2. Elige un personaje y una pose.
+3. Usa «Asignar atajo a esta pose» para elegir su combinación global.
+4. Abre la ventana del avatar. Puedes arrastrarla con el ratón y cambiar su
+   tamaño desde la esquina inferior derecha. Clic derecho muestra opciones.
+5. En OBS, añade una captura de la ventana «Avatar Studio · Salida».
+   Usa el fondo verde y un filtro de clave de color para quitar el fondo.
+   También hay fondo transparente; su captura depende del método de OBS.
+
+ATAJOS INICIALES
+Ctrl + Alt + F1: Apollo, pose normal.
+Ctrl + Alt + F2: Daryan, pose normal.
+Ctrl + Alt + F3: Phoenix, con gorro.
+Ctrl + Alt + F4: Trucy, pose normal.
+Ctrl + Alt + F5: Klavier Gavin, pose normal.
+Ctrl + Alt + Espacio: hablar.
+Esc en la ventana del avatar: cerrar esa ventana.
+
+Hay dos modos: mantener el atajo para hablar y soltarlo para volver al reposo,
+o pulsar una vez para hablar y otra para detener. El botón de vista previa
+también activa y detiene la animación.
+
+La configuración se guarda en:
+%LOCALAPPDATA%\AxxBelmont\AvatarStudio\settings.json
+
+Si otro programa usa un atajo, aparece un aviso en la aplicación: cambia esa
+combinación. No necesita permisos de administrador. No captura el micrófono.
+
+PERSONAJES Y POSES
+Incluye 27 personajes con poses y variantes: Apollo, Trucy, Klavier, Phoenix,
+Kristoph, Ema, el juez, Winston Payne, Olga, Alita, Wocky, Guy Eldoon, Plum,
+Winfred, Hickfield, Vera, Spark Brushel, Dick Gumshoe, Valant, Drew Misham,
+Mike Meekins, Wesley, Zak, Lamiroir, Machi, Romein LeTouse y Daryan.
+Las versiones jóvenes y los cambios de vestuario aparecen como poses del mismo
+personaje. Phoenix incluye sus versiones con gorro y de abogado.
+Se conservan los atajos personalizados de versiones anteriores. Los atajos
+nuevos se añaden una sola vez si no entran en conflicto con los existentes.
+Se conservan las claves y duraciones de las secuencias originales. Las poses
+de reacción sin una secuencia de habla propia reproducen su gesto.
+Se omiten cinco secuencias especiales de derrumbe de Daryan.
+No se incluyen todas las secuencias especiales, las cadenas y cerraduras,
+los acercamientos de percepción ni las piezas sueltas de los trucos de magia.
+Los personajes que solo aparecen como retratos no tienen animaciones nativas.
+La versión 0.2 corrige las unidades de los ajustes del atlas y compone las
+piezas antes de reducir la imagen. Usa un origen común y márgenes calculados
+con todos los fotogramas para evitar cortar el pelo y las manos. Conserva el
+borde inferior original del busto, sin incluir dibujos ajenos del atlas.
+También respeta las piezas ocultas del atlas HD para evitar duplicados.
+Falta contrastar la interpolación exacta con una grabación del motor original
+y probar los atajos y la captura en la configuración real de OBS del usuario.
+
+CRÉDITOS
+Aplicación: Axx Belmont.
+Personajes, ilustraciones y animaciones originales: Capcom.
+Recursos extraídos de la instalación local del juego del usuario.
+Lectura de PAK y TEX: AJT-Tools, Aclios y colaboradores.
+https://github.com/Aclios/AJT-Tools
+Esquema CellAnimationData: RE_RSZ, alphaZomega y colaboradores.
+https://github.com/alphazolam/RE_RSZ
+Video: FFmpeg, compilación Gyan 8.1.2, ejecutado como programa separado.
+Licencia GPL v3 o posterior. La licencia también está dentro del EXE en Créditos.
+https://www.gyan.dev/ffmpeg/builds/
+Código fuente: https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz
+Fuente de diálogos original: Linotype Syntax Letter Pro.
