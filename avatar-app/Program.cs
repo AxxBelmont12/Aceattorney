@@ -10,7 +10,7 @@ public static class Program
         try
         {
             Velopack.VelopackApp.Build().SetAutoApplyOnStartup(false).Run();
-            using var assets = new AssetStore();
+            using var assets = new AssetStore(loadCustom:!args.Any(a=>a.EndsWith("self-test",StringComparison.Ordinal)));
             if (args.Contains("--self-test")) return Verification.Run(assets);
             if(args.Contains("--dialogue-self-test") || args.Contains("--transcription-self-test") || args.Contains("--update-self-test"))
             {

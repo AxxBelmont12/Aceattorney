@@ -27,6 +27,18 @@ Una nueva versión publicada genera un aviso; un commit por sí solo no cambia l
 
 El modelo multilingüe de voz se descarga una vez (148 MB). La transcripción funciona en el equipo, sin enviar audios a un servidor ni utilizar una API de pago. La consulta de actualizaciones utiliza GitHub.
 
+## Avatares personales
+
+Pulsa **Importar mi avatar…** y elige un paquete `.avavatar.zip`. Se añade al selector,
+se conserva al reiniciar y funciona con los atajos, la salida de OBS y el editor.
+Las imágenes se guardan localmente; importar no las publica en este repositorio.
+Para usar un proyecto con un avatar personal en otra PC, importa también su paquete.
+
+El ZIP contiene un `manifest.json` con poses, referencias a fotogramas PNG y clips
+para reposo/habla. Usa el mismo lienzo que el catálogo (1033 × 723, 60 fps).
+El importador comprueba dimensiones, índices y tiempos, limita los recursos y no
+extrae rutas del ZIP al disco. Un paquete opcional dañado no impide abrir la app.
+
 ## Compilar
 
 Necesitas Windows, .NET SDK 8 o posterior y PowerShell 7.

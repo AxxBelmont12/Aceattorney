@@ -11,6 +11,7 @@ public static class DialogueVerification
     public static async Task RunAsync(AssetStore assets)
     {
         string folder=Environment.GetEnvironmentVariable("DIALOGUE_QA_DIR")??"avatar-work/dialogue-qa";Directory.CreateDirectory(folder);
+        CustomAvatarVerification.Run(assets,folder);
         File.WriteAllText(Path.Combine(folder,"font-info.txt"),string.Join("\n",Fonts.GetFontFamilies(new Uri("pack://application:,,,/assets/dialogue/")).SelectMany(f=>f.GetTypefaces().Select(t=>f.Source+" | "+string.Join(",",f.FamilyNames.Values)+" | "+t.Weight+" | glyph="+t.TryGetGlyphTypeface(out _)))));
         Check(DialogueResources.Typeface.TryGetGlyphTypeface(out var glyphs),"Private game font loading");
         Check(glyphs.FamilyNames.Values.Any(n=>n.Contains("Syntax")),"Original game font selected instead of fallback");

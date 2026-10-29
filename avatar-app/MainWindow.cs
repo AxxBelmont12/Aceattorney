@@ -22,6 +22,7 @@ public sealed class MainWindow : Window
     readonly ListBox poses = new();
     readonly TextBlock status = new(), shortcutLabel = new(), talkLabel = new(), poseTitle = new();
     readonly Image preview = new() { Stretch = Stretch.Uniform };
+    readonly TextBlock characterCount=new(){FontSize=15,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,4,0,4)};
     readonly Stopwatch clock = Stopwatch.StartNew();
     readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(16) };
     Pose current = null!;
@@ -44,7 +45,7 @@ public sealed class MainWindow : Window
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         var heading = new StackPanel { Margin = new Thickness(0, 0, 0, 20) };
         heading.Children.Add(Text("AVATAR STUDIO", 30, Brushes.Gold));
-        heading.Children.Add(Text($"Axx Belmont  ·  {assets.Library.Poses.Select(p => p.Character).Distinct().Count()} personajes de Apollo Justice", 15));
+        UpdateCharacterCount();heading.Children.Add(characterCount);
         var header=new DockPanel();
         var video=Button("CREAR VIDEO CON DIÁLOGO",(_,_)=>OpenDialogue());video.HorizontalAlignment=HorizontalAlignment.Right;video.VerticalAlignment=VerticalAlignment.Top;video.Margin=new Thickness(18,8,0,0);video.Foreground=Brushes.Gold;
         DockPanel.SetDock(video,Dock.Right);header.Children.Add(video);header.Children.Add(heading);root.Children.Add(header);
@@ -56,6 +57,7 @@ public sealed class MainWindow : Window
         left.Children.Add(Text("PERSONAJE", 12, Brushes.Gold));
         characters.ItemsSource = assets.Library.Poses.Select(p => p.Character).Distinct().OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase).ToList(); characters.IsTextSearchEnabled = true; characters.Margin = new Thickness(0, 6, 0, 12);
         left.Children.Add(characters);
+        left.Children.Add(Button("Importar mi avatar…",(_,_)=>ImportCustomAvatar()));
         poses.Height = 190; poses.Background = Panel; poses.Foreground = Brushes.White; poses.BorderThickness = new Thickness(0);
         left.Children.Add(poses);
         shortcutLabel.TextWrapping = TextWrapping.Wrap; shortcutLabel.Margin = new Thickness(0, 10, 0, 0); left.Children.Add(shortcutLabel);
@@ -116,6 +118,18 @@ public sealed class MainWindow : Window
         Closed += (_, _) => { timer.Stop(); hotkeys?.Dispose(); output?.Close(); Save(); };
     }
     static TextBlock Text(string text, double size, Brush? color = null) => new() { Text = text, FontSize = size, Foreground = color ?? Brushes.White, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 4) };
+    void UpdateCharacterCount()=>characterCount.Text=$"Axx Belmont · {assets.Library.Poses.Select(p=>p.Character).Distinct().Count()} personajes y avatares";
+    void ImportCustomAvatar()
+    {
+        choosing=true;toggleTalking=false;SetTalking(false);timer.Stop();hotkeys?.Clear();
+        try
+        {
+            var dialog=new Microsoft.Win32.OpenFileDialog{Title="Importar paquete de avatar",Filter="Avatar Studio · avatar animado|*.avavatar.zip",CheckFileExists=true};if(dialog.ShowDialog(this)!=true)return;
+            var pose=assets.ImportAvatarPack(dialog.FileName);selecting=true;characters.ItemsSource=assets.Library.Poses.Select(p=>p.Character).Distinct().OrderBy(n=>n,StringComparer.CurrentCultureIgnoreCase).ToList();selecting=false;UpdateCharacterCount();Select(pose);Save();status.Text="Avatar importado. Ya puedes hablar, asignar atajos y usarlo en el editor de video.";
+        }
+        catch(Exception ex){selecting=false;status.Text="No se pudo importar el avatar: "+ex.Message;}
+        finally{choosing=false;Register();if(!testing)timer.Start();}
+    }
     static Button Button(string label, RoutedEventHandler action)
     {
         var b = new Button { Content = label, Padding = new Thickness(12, 8, 12, 8), Margin = new Thickness(0, 5, 0, 5), Background = Panel, Foreground = Brushes.White, BorderThickness = new Thickness(0), HorizontalContentAlignment = HorizontalAlignment.Center };

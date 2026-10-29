@@ -54,23 +54,24 @@ public sealed class Cell
     public double Sx { get; set; } = 1;
     public double Sy { get; set; } = 1;
 }
-public sealed class AssetStore : IDisposable
+public sealed partial class AssetStore : IDisposable
 {
     readonly Stream source = Assembly.GetExecutingAssembly().GetManifestResourceStream("Avatars")!;
     readonly ZipArchive zip;
     readonly Dictionary<string, BitmapSource> cache = new();
     public Library Library { get; }
     public static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true, WriteIndented = true };
-    public AssetStore()
+    public AssetStore(bool loadCustom=true)
     {
         zip = new ZipArchive(source, ZipArchiveMode.Read);
         using var stream = zip.GetEntry("manifest.json")!.Open();
         Library = JsonSerializer.Deserialize<Library>(stream, Json)!;
+        if(loadCustom)LoadCustomAvatars();
     }
     public BitmapSource Frame(string path)
     {
         if (cache.TryGetValue(path, out var bitmap)) return bitmap;
-        using var stream = zip.GetEntry(path)!.Open();
+        using var stream = customFrames.TryGetValue(path,out var data)?new MemoryStream(data):zip.GetEntry(path)!.Open();
         using var memory = new MemoryStream(); stream.CopyTo(memory); memory.Position = 0;
         var image = new BitmapImage();
         image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad; image.StreamSource = memory; image.EndInit(); image.Freeze();

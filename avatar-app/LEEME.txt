@@ -1,5 +1,13 @@
-AXX BELMONT · AVATAR STUDIO 0.14.2
+AXX BELMONT · AVATAR STUDIO 0.14.3
 ESTUDIO DE VIDEO, MODO JUICIO Y AUDIO A TEXTO
+
+IMPORTAR UN AVATAR PERSONAL
+En la ventana principal pulsa Importar mi avatar… y selecciona un archivo
+.avavatar.zip. El personaje aparecerá en el selector y seguirá disponible al
+volver a abrir el programa. Puedes asignarle atajos y usarlo en los videos.
+El paquete se guarda en la carpeta local AxxBelmont/AvatarStudio/avatars.
+Al llevar un proyecto con avatar propio a otra PC, importa allí también el paquete.
+Importar no publica ni envía las imágenes a GitHub ni a otro servidor.
 
 INSTALACIÓN Y ACTUALIZACIONES
 Descarga Instalar-Axx-Belmont-Avatar-Studio.exe desde:
